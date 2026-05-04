@@ -2,12 +2,37 @@ package com.apps.quantitymeasurement;
 
 public class QuantityMeasurementApp {
 
-    // ✅ Feet class (same as UC1)
-    public static class Feet {
-        private final double value;
+    // ✅ Step 1: Enum for Units
+    public enum LengthUnit {
+        FEET(1.0),
+        INCH(1.0 / 12.0);
 
-        public Feet(double value) {
+        private final double toFeetFactor;
+
+        LengthUnit(double toFeetFactor) {
+            this.toFeetFactor = toFeetFactor;
+        }
+
+        public double toBase(double value) {
+            return value * toFeetFactor;
+        }
+    }
+
+    // ✅ Step 2: Generic QuantityLength Class
+    public static class QuantityLength {
+        private final double value;
+        private final LengthUnit unit;
+
+        public QuantityLength(double value, LengthUnit unit) {
+            if (unit == null) {
+                throw new IllegalArgumentException("Unit cannot be null");
+            }
             this.value = value;
+            this.unit = unit;
+        }
+
+        public double toFeet() {
+            return unit.toBase(value);
         }
 
         @Override
@@ -16,58 +41,27 @@ public class QuantityMeasurementApp {
             if (obj == null) return false;
             if (this.getClass() != obj.getClass()) return false;
 
-            Feet other = (Feet) obj;
-            return Double.compare(this.value, other.value) == 0;
+            QuantityLength other = (QuantityLength) obj;
+
+            // Compare after converting both to base unit (feet)
+            return Double.compare(this.toFeet(), other.toFeet()) == 0;
         }
 
         @Override
         public int hashCode() {
-            return Double.hashCode(value);
+            return Double.hashCode(toFeet());
         }
     }
 
-    // ✅ Inches class (NEW for UC2)
-    public static class Inches {
-        private final double value;
+    // ✅ Demo Methods
+    public static void demonstrateEquality() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(12.0, LengthUnit.INCH);
 
-        public Inches(double value) {
-            this.value = value;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (this.getClass() != obj.getClass()) return false;
-
-            Inches other = (Inches) obj;
-            return Double.compare(this.value, other.value) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return Double.hashCode(value);
-        }
-    }
-
-    // ✅ Demonstration methods (as per UC2 hint)
-
-    public static void demonstrateFeetEquality() {
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(1.0);
-
-        System.out.println("Feet Equal? " + f1.equals(f2));
-    }
-
-    public static void demonstrateInchesEquality() {
-        Inches i1 = new Inches(1.0);
-        Inches i2 = new Inches(1.0);
-
-        System.out.println("Inches Equal? " + i1.equals(i2));
+        System.out.println("1 Feet == 12 Inches ? " + q1.equals(q2));
     }
 
     public static void main(String[] args) {
-        demonstrateFeetEquality();
-        demonstrateInchesEquality();
+        demonstrateEquality();
     }
 }

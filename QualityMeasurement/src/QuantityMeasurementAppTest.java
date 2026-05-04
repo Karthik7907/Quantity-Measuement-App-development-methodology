@@ -2,90 +2,87 @@ package com.apps.quantitymeasurement;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.apps.quantitymeasurement.QuantityMeasurementApp.Feet;
-import com.apps.quantitymeasurement.QuantityMeasurementApp.Inches;
+import com.apps.quantitymeasurement.QuantityMeasurementApp.QuantityLength;
+import com.apps.quantitymeasurement.QuantityMeasurementApp.LengthUnit;
 
 public class QuantityMeasurementAppTest {
 
-
     @Test
-    public void testFeetEquality_SameValue() {
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(1.0);
+    public void testEquality_FeetToFeet_SameValue() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(1.0, LengthUnit.FEET);
 
-        assertTrue(f1.equals(f2));
+        assertTrue(q1.equals(q2));
     }
 
     @Test
-    public void testFeetEquality_DifferentValue() {
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(2.0);
+    public void testEquality_InchToInch_SameValue() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.INCH);
+        QuantityLength q2 = new QuantityLength(1.0, LengthUnit.INCH);
 
-        assertFalse(f1.equals(f2));
+        assertTrue(q1.equals(q2));
     }
 
     @Test
-    public void testFeetEquality_NullComparison() {
-        Feet f1 = new Feet(1.0);
+    public void testEquality_FeetToInch_Equivalent() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(12.0, LengthUnit.INCH);
 
-        assertFalse(f1.equals(null));
+        assertTrue(q1.equals(q2));
     }
 
     @Test
-    public void testFeetEquality_DifferentClass() {
-        Feet f1 = new Feet(1.0);
-        String str = "1.0";
+    public void testEquality_InchToFeet_Equivalent() {
+        QuantityLength q1 = new QuantityLength(12.0, LengthUnit.INCH);
+        QuantityLength q2 = new QuantityLength(1.0, LengthUnit.FEET);
 
-        assertFalse(f1.equals(str));
+        assertTrue(q1.equals(q2));
     }
 
     @Test
-    public void testFeetEquality_SameReference() {
-        Feet f1 = new Feet(1.0);
+    public void testEquality_FeetToFeet_DifferentValue() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(2.0, LengthUnit.FEET);
 
-        assertTrue(f1.equals(f1));
-    }
-
-
-    @Test
-    public void testInchesEquality_SameValue() {
-        Inches i1 = new Inches(1.0);
-        Inches i2 = new Inches(1.0);
-
-        assertTrue(i1.equals(i2));
+        assertFalse(q1.equals(q2));
     }
 
     @Test
-    public void testInchesEquality_DifferentValue() {
-        Inches i1 = new Inches(1.0);
-        Inches i2 = new Inches(2.0);
+    public void testEquality_InchToInch_DifferentValue() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.INCH);
+        QuantityLength q2 = new QuantityLength(2.0, LengthUnit.INCH);
 
-        assertFalse(i1.equals(i2));
+        assertFalse(q1.equals(q2));
     }
 
     @Test
-    public void testInchesEquality_NullComparison() {
-        Inches i1 = new Inches(1.0);
+    public void testEquality_NullComparison() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
 
-        assertFalse(i1.equals(null));
+        assertFalse(q1.equals(null));
     }
 
     @Test
-    public void testInchesEquality_DifferentClass() {
-        Inches i1 = new Inches(1.0);
-        Integer num = 1;
+    public void testEquality_DifferentClass() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
 
-        assertFalse(i1.equals(num));
+        assertFalse(q1.equals("1.0"));
     }
 
     @Test
-    public void testInchesEquality_SameReference() {
-        Inches i1 = new Inches(1.0);
+    public void testEquality_SameReference() {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
 
-        assertTrue(i1.equals(i1));
+        assertTrue(q1.equals(q1));
+    }
+
+    @Test
+    public void testEquality_InvalidUnit() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            new QuantityLength(1.0, null);
+        });
     }
 }
