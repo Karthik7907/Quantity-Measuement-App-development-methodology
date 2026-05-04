@@ -1,34 +1,11 @@
 package com.apps.quantitymeasurement;
 
+import java.util.Objects;
+
 public class QuantityMeasurementApp {
 
     // =========================
-    // LENGTH UNIT ENUM
-    // =========================
-    public enum LengthUnit {
-
-        FEET(1.0),
-        INCH(1.0 / 12.0),
-        YARD(3.0),
-        CENTIMETER(0.0328084);
-
-        private final double toFeetFactor;
-
-        LengthUnit(double toFeetFactor) {
-            this.toFeetFactor = toFeetFactor;
-        }
-
-        public double toFeet(double value) {
-            return value * toFeetFactor;
-        }
-
-        public double fromFeet(double feetValue) {
-            return feetValue / toFeetFactor;
-        }
-    }
-
-    // =========================
-    // VALUE OBJECT
+    // QuantityLength (UC8 FINAL)
     // =========================
     public static class QuantityLength {
 
@@ -37,81 +14,106 @@ public class QuantityMeasurementApp {
 
         public QuantityLength(double value, LengthUnit unit) {
 
-            if (unit == null)
-                throw new IllegalArgumentException("Unit cannot be null");
+            if (!Double.isFinite(value)) {
+                throw new IllegalArgumentException("Invalid numeric value");
+            }
 
-            if (!Double.isFinite(value))
-                throw new IllegalArgumentException("Invalid value");
+            if (unit == null) {
+                throw new IllegalArgumentException("Unit cannot be null");
+            }
 
             this.value = value;
             this.unit = unit;
         }
 
-        // =========================
-        // UC5: CONVERSION
-        // =========================
-        public static double convert(double value, LengthUnit from, LengthUnit to) {
+        // Getter (fix for your error: value has private access)
+        public double getValue() {
+            return value;
+        }
 
-            if (from == null || to == null)
-                throw new IllegalArgumentException("Unit cannot be null");
-
-            if (!Double.isFinite(value))
-                throw new IllegalArgumentException("Invalid value");
-
-            double feet = from.toFeet(value);
-            return to.fromFeet(feet);
+        public LengthUnit getUnit() {
+            return unit;
         }
 
         // =========================
-        // UC6 + UC7: ADDITION
+        // CONVERT
         // =========================
-        public static QuantityLength add(
-                QuantityLength q1,
-                QuantityLength q2,
-                LengthUnit targetUnit) {
+        public QuantityLength convertTo(LengthUnit targetUnit) {
 
-            if (q1 == null || q2 == null || targetUnit == null)
-                throw new IllegalArgumentException("Null not allowed");
+            if (targetUnit == null) {
+                throw new IllegalArgumentException("Target unit cannot be null");
+            }
 
-            double sumFeet =
-                    q1.unit.toFeet(q1.value) +
-                            q2.unit.toFeet(q2.value);
+            double base = unit.convertToBaseUnit(value);
+            double converted = targetUnit.convertFromBaseUnit(base);
 
-            double resultValue = targetUnit.fromFeet(sumFeet);
-
-            return new QuantityLength(resultValue, targetUnit);
+            return new QuantityLength(converted, targetUnit);
         }
 
         // =========================
-        // BASE CONVERSION
-        // =========================
-        private double toFeet() {
-            return unit.toFeet(value);
-        }
-
-        // =========================
-        // EQUALITY (UC6 + UC7 FIX)
+        // EQUALITY (UC1–UC8 COMPATIBLE)
         // =========================
         @Override
         public boolean equals(Object obj) {
 
             if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
+            if (!(obj instanceof QuantityLength)) return false;
 
             QuantityLength other = (QuantityLength) obj;
 
-            // EPSILON FIX FOR ALL 14 TEST CASES
-            return Math.abs(this.toFeet() - other.toFeet()) < 0.0001;
+            double thisBase = this.unit.convertToBaseUnit(this.value);
+            double otherBase = other.unit.convertToBaseUnit(other.value);
+
+            return Math.abs(thisBase - otherBase) < 0.000001;
         }
 
         @Override
         public int hashCode() {
-            return Double.hashCode(toFeet());
+            return Objects.hash(unit.convertToBaseUnit(value));
         }
 
         @Override
         public String toString() {
             return "Quantity(" + value + ", " + unit + ")";
         }
+
+        // =========================
+        // UC6 + UC7 ADDITION
+        // =========================
+
+        // UC6 → default target = first operand unit
+        public static QuantityLength add(QuantityLength l1, QuantityLength l2) {
+            return add(l1, l2, l1.unit);
+        }
+
+        // UC7 → explicit target unit
+        public static QuantityLength add(QuantityLength l1, QuantityLength l2, LengthUnit targetUnit) {
+
+            if (l1 == null || l2 == null || targetUnit == null) {
+                throw new IllegalArgumentException("Null not allowed");
+            }
+
+            double base1 = l1.unit.convertToBaseUnit(l1.value);
+            double base2 = l2.unit.convertToBaseUnit(l2.value);
+
+            double sumBase = base1 + base2;
+
+            double result = targetUnit.convertFromBaseUnit(sumBase);
+
+            return new QuantityLength(result, targetUnit);
+        }
+    }
+
+    // =========================
+    // MAIN (Demo)
+    // =========================
+    public static void main(String[] args) {
+
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(12.0, LengthUnit.INCH);
+
+        System.out.println(q1.equals(q2));
+        System.out.println(q1.convertTo(LengthUnit.INCH));
+        System.out.println(QuantityLength.add(q1, q2, LengthUnit.YARD));
     }
 }
