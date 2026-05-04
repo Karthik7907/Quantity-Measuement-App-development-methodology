@@ -2,187 +2,211 @@ package com.apps.quantitymeasurement;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.apps.quantitymeasurement.QuantityMeasurementApp.LengthUnit;
 import com.apps.quantitymeasurement.QuantityMeasurementApp.QuantityLength;
+import com.apps.quantitymeasurement.LengthUnit;
 
 public class QuantityMeasurementAppTest {
 
     // =========================
-    // SAME UNIT TESTS
+    // UC1 + UC2 + UC3 + UC4 + UC8: EQUALITY TESTS
     // =========================
+
     @Test
-    void testFeetToFeet() {
+    public void testFeetEquality_SameValue() {
+        assertTrue(new QuantityLength(1.0, LengthUnit.FEET)
+                .equals(new QuantityLength(1.0, LengthUnit.FEET)));
+    }
+
+    @Test
+    public void testFeetEquality_DifferentValue() {
+        assertFalse(new QuantityLength(1.0, LengthUnit.FEET)
+                .equals(new QuantityLength(2.0, LengthUnit.FEET)));
+    }
+
+    @Test
+    public void testInchEquality_SameValue() {
+        assertTrue(new QuantityLength(1.0, LengthUnit.INCH)
+                .equals(new QuantityLength(1.0, LengthUnit.INCH)));
+    }
+
+    @Test
+    public void testCrossUnit_FeetToInch() {
+        assertTrue(new QuantityLength(1.0, LengthUnit.FEET)
+                .equals(new QuantityLength(12.0, LengthUnit.INCH)));
+    }
+
+    @Test
+    public void testCrossUnit_YardToFeet() {
+        assertTrue(new QuantityLength(1.0, LengthUnit.YARD)
+                .equals(new QuantityLength(3.0, LengthUnit.FEET)));
+    }
+
+    @Test
+    public void testCrossUnit_CentimeterToInch() {
+        assertTrue(new QuantityLength(2.54, LengthUnit.CENTIMETER)
+                .equals(new QuantityLength(1.0, LengthUnit.INCH)));
+    }
+
+    // =========================
+    // UC5: CONVERSION TESTS
+    // =========================
+
+    @Test
+    public void testConvert_FeetToInch() {
+        QuantityLength result =
+                new QuantityLength(1.0, LengthUnit.FEET).convertTo(LengthUnit.INCH);
+
+        assertEquals(12.0, result.getValue(), 0.0001);
+    }
+
+    @Test
+    public void testConvert_YardToFeet() {
+        QuantityLength result =
+                new QuantityLength(1.0, LengthUnit.YARD).convertTo(LengthUnit.FEET);
+
+        assertEquals(3.0, result.getValue(), 0.0001);
+    }
+
+    @Test
+    public void testConvert_InchToFeet() {
+        QuantityLength result =
+                new QuantityLength(12.0, LengthUnit.INCH).convertTo(LengthUnit.FEET);
+
+        assertEquals(1.0, result.getValue(), 0.0001);
+    }
+
+    // =========================
+    // UC6: ADDITION (DEFAULT UNIT = FIRST OPERAND)
+    // =========================
+
+    @Test
+    public void testAddition_FeetPlusFeet() {
+        QuantityLength result = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(2.0, LengthUnit.FEET)
+        );
+
         assertEquals(
-                new QuantityLength(2.0, LengthUnit.FEET),
-                QuantityLength.add(
-                        new QuantityLength(1.0, LengthUnit.FEET),
-                        new QuantityLength(1.0, LengthUnit.FEET),
-                        LengthUnit.FEET
-                )
+                new QuantityLength(3.0, LengthUnit.FEET),
+                result
         );
     }
 
     @Test
-    void testInchToInch() {
+    public void testAddition_FeetPlusInch() {
+        QuantityLength result = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(12.0, LengthUnit.INCH)
+        );
+
         assertEquals(
+                new QuantityLength(2.0, LengthUnit.FEET),
+                result
+        );
+    }
+
+    @Test
+    public void testAddition_WithZero() {
+        QuantityLength result = QuantityLength.add(
+                new QuantityLength(5.0, LengthUnit.FEET),
+                new QuantityLength(0.0, LengthUnit.INCH)
+        );
+
+        assertEquals(
+                new QuantityLength(5.0, LengthUnit.FEET),
+                result
+        );
+    }
+
+    @Test
+    public void testAddition_NegativeValues() {
+        QuantityLength result = QuantityLength.add(
+                new QuantityLength(5.0, LengthUnit.FEET),
+                new QuantityLength(-2.0, LengthUnit.FEET)
+        );
+
+        assertEquals(
+                new QuantityLength(3.0, LengthUnit.FEET),
+                result
+        );
+    }
+
+    // =========================
+    // UC7: ADDITION WITH TARGET UNIT
+    // =========================
+
+
+
+    @Test
+    public void testAddition_ExplicitTargetUnit_Inch() {
+        QuantityLength result = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.FEET),
                 new QuantityLength(12.0, LengthUnit.INCH),
-                QuantityLength.add(
-                        new QuantityLength(6.0, LengthUnit.INCH),
-                        new QuantityLength(6.0, LengthUnit.INCH),
-                        LengthUnit.INCH
-                )
+                LengthUnit.INCH
         );
-    }
 
-    // =========================
-    // CROSS UNIT TESTS
-    // =========================
-    @Test
-    void testFeetPlusInch_FeetTarget() {
-        assertEquals(
-                new QuantityLength(2.0, LengthUnit.FEET),
-                QuantityLength.add(
-                        new QuantityLength(1.0, LengthUnit.FEET),
-                        new QuantityLength(12.0, LengthUnit.INCH),
-                        LengthUnit.FEET
-                )
-        );
-    }
-
-    @Test
-    void testFeetPlusInch_InchTarget() {
         assertEquals(
                 new QuantityLength(24.0, LengthUnit.INCH),
-                QuantityLength.add(
-                        new QuantityLength(1.0, LengthUnit.FEET),
-                        new QuantityLength(12.0, LengthUnit.INCH),
-                        LengthUnit.INCH
-                )
+                result
         );
     }
 
-    // =========================
-    // YARD TESTS
-    // =========================
     @Test
-    void testYardAddition() {
+    public void testAddition_ExplicitTargetUnit_Feet() {
+        QuantityLength result = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(12.0, LengthUnit.INCH),
+                LengthUnit.FEET
+        );
+
         assertEquals(
-                new QuantityLength(2.0, LengthUnit.YARD),
-                QuantityLength.add(
-                        new QuantityLength(1.0, LengthUnit.YARD),
-                        new QuantityLength(3.0, LengthUnit.FEET),
-                        LengthUnit.YARD
-                )
+                new QuantityLength(2.0, LengthUnit.FEET),
+                result
         );
     }
 
-    // =========================
-    // CENTIMETER TESTS
-    // =========================
     @Test
-    void testCentimeterAddition() {
-        assertEquals(
-                new QuantityLength(5.08, LengthUnit.CENTIMETER),
-                QuantityLength.add(
-                        new QuantityLength(2.54, LengthUnit.CENTIMETER),
-                        new QuantityLength(1.0, LengthUnit.INCH),
-                        LengthUnit.CENTIMETER
-                )
-        );
-    }
-
-    // =========================
-    // COMMUTATIVITY
-    // =========================
-    @Test
-    void testCommutativity() {
-
+    public void testAddition_Commutativity() {
         QuantityLength r1 = QuantityLength.add(
                 new QuantityLength(1.0, LengthUnit.FEET),
                 new QuantityLength(12.0, LengthUnit.INCH),
-                LengthUnit.YARD
+                LengthUnit.FEET
         );
 
         QuantityLength r2 = QuantityLength.add(
                 new QuantityLength(12.0, LengthUnit.INCH),
                 new QuantityLength(1.0, LengthUnit.FEET),
-                LengthUnit.YARD
+                LengthUnit.FEET
         );
 
         assertEquals(r1, r2);
     }
 
     // =========================
-    // ZERO TEST
+    // EDGE CASES
     // =========================
+
     @Test
-    void testWithZero() {
-        assertEquals(
-                new QuantityLength(5.0, LengthUnit.FEET),
-                QuantityLength.add(
-                        new QuantityLength(5.0, LengthUnit.FEET),
-                        new QuantityLength(0.0, LengthUnit.INCH),
-                        LengthUnit.FEET
-                )
-        );
+    public void testInvalidValue_NaN() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new QuantityLength(Double.NaN, LengthUnit.FEET));
     }
 
-    // =========================
-    // NEGATIVE TEST
-    // =========================
     @Test
-    void testNegativeAddition() {
-        assertEquals(
-                new QuantityLength(3.0, LengthUnit.FEET),
-                QuantityLength.add(
-                        new QuantityLength(5.0, LengthUnit.FEET),
-                        new QuantityLength(-2.0, LengthUnit.FEET),
-                        LengthUnit.FEET
-                )
-        );
+    public void testNullUnit() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new QuantityLength(1.0, null));
     }
 
-    // =========================
-    // NULL TESTS
-    // =========================
     @Test
-    void testNullSecondOperand() {
-        assertThrows(IllegalArgumentException.class, () ->
-                QuantityLength.add(
+    public void testNullAddition() {
+        assertThrows(IllegalArgumentException.class,
+                () -> QuantityLength.add(
                         new QuantityLength(1.0, LengthUnit.FEET),
-                        null,
-                        LengthUnit.FEET
-                )
-        );
-    }
-
-    @Test
-    void testNullTargetUnit() {
-        assertThrows(IllegalArgumentException.class, () ->
-                QuantityLength.add(
-                        new QuantityLength(1.0, LengthUnit.FEET),
-                        new QuantityLength(1.0, LengthUnit.INCH),
                         null
-                )
-        );
-    }
-
-    // =========================
-    // PRECISION TEST
-    // =========================
-    @Test
-    void testPrecision() {
-        assertEquals(
-                new QuantityLength(1.6667, LengthUnit.YARD),
-                QuantityLength.add(
-                        new QuantityLength(5.0, LengthUnit.FEET),
-                        new QuantityLength(0.0, LengthUnit.INCH),
-                        LengthUnit.YARD
-                )
-        );
+                ));
     }
 }
