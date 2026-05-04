@@ -2,10 +2,9 @@ package com.apps.quantitymeasurement;
 
 public class QuantityMeasurementApp {
 
-    /**
-     * Enum representing supported length units.
-     * Each unit stores its conversion factor relative to FEET (base unit).
-     */
+    // =========================
+    // UNIT ENUM
+    // =========================
     public enum LengthUnit {
         FEET(1.0),
         INCH(1.0 / 12.0),
@@ -27,10 +26,11 @@ public class QuantityMeasurementApp {
         }
     }
 
-    /**
-     * Immutable value object representing a length.
-     */
+    // =========================
+    // VALUE OBJECT
+    // =========================
     public static class QuantityLength {
+
         private final double value;
         private final LengthUnit unit;
 
@@ -44,41 +44,47 @@ public class QuantityMeasurementApp {
             this.unit = unit;
         }
 
-        public double getValue() {
-            return value;
-        }
-
-        public LengthUnit getUnit() {
-            return unit;
-        }
-
-        // ✅ Convert this object to another unit
-        public QuantityLength convertTo(LengthUnit targetUnit) {
-            double convertedValue = convert(this.value, this.unit, targetUnit);
-            return new QuantityLength(convertedValue, targetUnit);
-        }
-
-        // ✅ Static conversion API (CORE of UC5)
-        public static double convert(double value, LengthUnit source, LengthUnit target) {
-
-            if (source == null || target == null)
-                throw new IllegalArgumentException("Units cannot be null");
-
+        // =========================
+        // UC5: CONVERSION API
+        // =========================
+        public static double convert(double value, LengthUnit from, LengthUnit to) {
+            if (from == null || to == null)
+                throw new IllegalArgumentException("Unit cannot be null");
             if (!Double.isFinite(value))
-                throw new IllegalArgumentException("Value must be finite");
+                throw new IllegalArgumentException("Invalid value");
 
-            // Normalize to base unit (feet)
-            double inFeet = source.toFeet(value);
-
-            // Convert to target unit
-            return target.fromFeet(inFeet);
+            double inFeet = from.toFeet(value);
+            return to.fromFeet(inFeet);
         }
 
-        // ✅ Equality (unchanged)
+        // =========================
+        // UC6: ADDITION
+        // =========================
+        public static QuantityLength add(QuantityLength q1, QuantityLength q2, LengthUnit resultUnit) {
+
+            if (q1 == null || q2 == null || resultUnit == null)
+                throw new IllegalArgumentException("Null not allowed");
+
+            double q1Feet = q1.unit.toFeet(q1.value);
+            double q2Feet = q2.unit.toFeet(q2.value);
+
+            double sumFeet = q1Feet + q2Feet;
+
+            double resultValue = resultUnit.fromFeet(sumFeet);
+
+            return new QuantityLength(resultValue, resultUnit);
+        }
+
+        // =========================
+        // INTERNAL CONVERSION (FOR EQUALS)
+        // =========================
         private double toFeet() {
             return unit.toFeet(value);
         }
 
+        // =========================
+        // EQUALITY
+        // =========================
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
@@ -96,27 +102,20 @@ public class QuantityMeasurementApp {
 
         @Override
         public String toString() {
-            return value + " " + unit;
+            return "Quantity(" + value + ", " + unit + ")";
         }
     }
 
-    // ✅ Method Overloading Demo
-    public static void demonstrateLengthConversion(double value, LengthUnit from, LengthUnit to) {
-        double result = QuantityLength.convert(value, from, to);
-        System.out.println(value + " " + from + " = " + result + " " + to);
-    }
-
-    public static void demonstrateLengthConversion(QuantityLength q, LengthUnit to) {
-        QuantityLength result = q.convertTo(to);
-        System.out.println(q + " = " + result);
-    }
-
+    // =========================
+    // DEMO METHODS (OPTIONAL)
+    // =========================
     public static void main(String[] args) {
 
-        demonstrateLengthConversion(1.0, LengthUnit.FEET, LengthUnit.INCH);
-        demonstrateLengthConversion(3.0, LengthUnit.YARD, LengthUnit.FEET);
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(12.0, LengthUnit.INCH);
 
-        QuantityLength q = new QuantityLength(36.0, LengthUnit.INCH);
-        demonstrateLengthConversion(q, LengthUnit.YARD);
+        QuantityLength result = QuantityLength.add(q1, q2, LengthUnit.FEET);
+
+        System.out.println("Result: " + result);
     }
 }
